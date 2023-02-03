@@ -74,3 +74,61 @@
 (two-in-a-row-b? '(italian sardines spaghetti parsley))
 (two-in-a-row-b? '(italian sardines spaghetti spaghetti parsley))
 (two-in-a-row-b? '(italian sardines spaghetti parsley parsley))
+
+(define (book/4/two-in-a-row-b? preceding lat)
+  (cond [(null? lat) #f]
+        [else
+         (or (eq? (car lat) preceding)
+             (book/4/two-in-a-row-b? (car lat) (cdr lat)))]))
+
+(define (book/4/two-in-a-row? lat)
+  (cond [(null? lat) #f]
+        [else
+         (book/4/two-in-a-row-b? (car lat) (cdr lat))]))
+
+(book/4/two-in-a-row? '(italian sardines spaghetti parsley))
+(book/4/two-in-a-row? '(italian sardines spaghetti spaghetti parsley))
+(book/4/two-in-a-row? '(italian sardines spaghetti parsley parsley))
+
+(define (sum-of-prefixes tup)
+  (cond [(null? tup) '()]
+        [else
+         (cons
+          (sum-of-prefixes (rest tup))
+          (+ (first tup)
+             (sum-of-prefixes (rest tup))))]))
+
+(define (sum-of-prefixes tup)
+  (cond [(null? tup) '()]
+        [else
+         (sum-of-prefixes-b tup 0)]))
+
+(define (sum-of-prefixes-b tup sonssf)
+  (cond [(null? tup) '()]
+        [else
+         (cons (+ sonssf (car tup))
+               (sum-of-prefixes-b (cdr tup) (+ sonssf (car tup))))]))
+
+(sum-of-prefixes '(1 1 1 1 1))
+
+(define (accumulate tup [running-total 0])
+  (if (null? tup)
+      '()
+      (let ([tot (+ running-total (first tup))])
+        (cons tot (accumulate (rest tup) tot)))))
+
+(accumulate '(1 1 1 1 1))
+
+(define (pick n lat)
+  (cond [(eq? 1 n) (car lat)]
+        [else
+         (pick (sub1 n) (cdr lat))]))
+
+(define (scramble-b tup rev-pre)
+  (cond [(null? tup) '()]
+        [else
+         (cons (pick (car tup)
+                     (cons (car tup)
+                           rev-pre))
+               (scramble-b (cdr tup)
+                           (cons (car tup) rev-pre)))]))
