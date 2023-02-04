@@ -132,3 +132,57 @@
                            rev-pre))
                (scramble-b (cdr tup)
                            (cons (car tup) rev-pre)))]))
+
+(define (scramble tup)
+  (scramble-b tup '()))
+
+;; try it again
+(define (scramble tup)
+  ;; we want to move through the list, keeping track of seen, current, rest
+  ;; now, we want to grab the element that is curr steps backwards in seen
+  (let rc ([to-be (rest tup)]
+           [curr (list (first tup))]
+           [seen (list (first tup))]
+           [to-ret '()])
+    (cond [(null? to-be) (append to-ret
+                                 (list (pick (add1 (- (length seen) (first curr))) seen)))]
+          [else
+           (begin
+             (displayln (format "to-be: ~a curr: ~a seen: ~a to-ret: ~a"
+                                to-be
+                                curr
+                                seen
+                                to-ret))
+             (rc (rest to-be)
+                 (list (car to-be))
+                 (append seen (list (car to-be)))
+                 (append to-ret (list (pick (add1 (- (length seen) (first curr))) seen)))))])))
+
+;; boy howdy that is one ugly function but it works
+
+(define (sep ls n)
+  (let-values ([(f l) (split-at ls (sub1 n))])
+    (let ([f-val-ls (list (first l))])
+      (list (append f f-val-ls)
+            f-val-ls
+            (rest l)))))
+
+(define (find-backwards ls n)
+  (if (null? ls)
+      1
+      (list-ref (reverse ls) (sub1 n))))
+
+(define (scramble tup)
+  (let rc ([orig tup]
+           [curr-idx 1])
+    (cond [(null? orig) '()]
+          [else
+           (cons (find-backwards (first (sep tup curr-idx)) (first orig))
+                 (rc (rest orig) (add1 curr-idx)))])))
+;; cleaner
+
+(scramble '(1 2 3 4 5 6 7 8 9))
+
+(scramble '(1 1 1 3 4 2 1 1 9 2))
+
+(scramble '(1 2 3 1 2 3 4 1 8 2 10))
