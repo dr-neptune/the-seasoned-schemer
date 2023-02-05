@@ -180,9 +180,38 @@
            (cons (find-backwards (first (sep tup curr-idx)) (first orig))
                  (rc (rest orig) (add1 curr-idx)))])))
 ;; cleaner
+(scramble '(1 2 3 4 5 6 7 8 9))
+
+(scramble '(1 1 1 3 4 2 1 1 9 2))
+
+(scramble '(1 2 3 1 2 3 4 1 8 2 10))
+
+;; book again, still much more elegant
+(define (scramble-b tup rev-pre)
+  (cond [(null? tup) '()]
+        [else
+         (cons (pick (car tup)
+                     (cons (car tup) rev-pre))
+               (scramble-b (cdr tup)
+                           (cons (car tup) rev-pre)))]))
+
+(define (scramble tup)
+  (scramble-b tup '()))
 
 (scramble '(1 2 3 4 5 6 7 8 9))
 
 (scramble '(1 1 1 3 4 2 1 1 9 2))
 
 (scramble '(1 2 3 1 2 3 4 1 8 2 10))
+
+;; without helper function
+(define (scramble tup)
+  (define (pick ls n)
+    (list-ref ls (sub1 n)))
+  (let rc ([tp tup]
+           [rev-pre '()])
+    (cond [(null? tp) '()]
+          [else
+           (let ([build-rev (cons (car tp) rev-pre)])
+             (cons (pick build-rev (car tp))
+                   (rc (cdr tp) build-rev)))])))
