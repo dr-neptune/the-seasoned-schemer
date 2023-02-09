@@ -82,3 +82,59 @@
 ;; this escapes the rest of the sequence, avoiding div by 0
 
 ;; II. Metaprogramming
+(+ 3 (call/cc (λ (k^) (k^ 8))))
+(+ 3 (call/cc (λ (k^) 8)))
+
+;; II-3 A simple LISP-like Break
+(define RESUME '())
+(define (BREAK message)
+  (call/cc
+   (λ (k^)
+     (set! RESUME k^)
+     ((λ (x) x) message))))
+
+(BREAK "nope")
+(RESUME "uh huh")
+
+;; II-4 How to construct lambda^
+(define INVOKE/NO-CONT '())
+(define make-INVOKE/NO-CONT
+  (λ ()
+    ((call/cc
+      (λ (k^)
+        (set! INVOKE/NO-CONT (λ (th) (k^ th)))
+        (λ () 'INVOKE/NO-CONT))))))
+
+(make-INVOKE/NO-CONT)
+
+;; II-5 Programming in continuation-passing-style
+(define (sum-bst tree)
+  (call/cc
+   (λ (exit^)
+     (letrec ([sum-bst (λ (t)
+                         (cond [(null? t) 0]
+                               [(zero? (info t)) (exit^ 0)]
+                               [else (+ (info t)
+                                        (sum-bst (left t))
+                                        (sum-bst (right t)))]))])
+       (sum-bst t)))))
+
+(define (cps/sum-bst tree)
+  (letrec ([cps/sum-bst (λ (t k)
+                      (cond [(null? t) (k 0)]
+                            [(zero? (info t)) 0]
+                            [else (cps/sum-bst (left t)
+                                           (λ (result1)
+                                             (cps/sum-bst (right t)
+                                                      (λ (result2)
+                                                        (k (+ (info t) result1 result2))))))]))])
+    (cps/sum-bst t (λ (x) x))))
+
+;; II-6 Metaprogramming with call/cc: CYCLE
+
+(define (CYCLE f)
+  (call/cc (λ (k^)
+             (letrec ([loop (λ () (f k^) (loop))])
+               (loop)))))
+
+(CYCLE (λ (EXIT-CYCLE-WITH) e ...))
