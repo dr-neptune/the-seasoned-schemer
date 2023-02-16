@@ -131,10 +131,15 @@
     (cps/sum-bst t (λ (x) x))))
 
 ;; II-6 Metaprogramming with call/cc: CYCLE
-
 (define (CYCLE f)
   (call/cc (λ (k^)
              (letrec ([loop (λ () (f k^) (loop))])
                (loop)))))
 
 (CYCLE (λ (EXIT-CYCLE-WITH) e ...))
+
+;; the expectation is that e ... contains at least one invocation of (EXIT-CYCLE-WITH ..)
+;; so that the infinite loop will terminate with the arg to the first (EXIT-CYCLE-WITH ...)
+;; that it encounters
+
+;; III. Synchronous Processes
