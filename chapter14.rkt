@@ -102,3 +102,78 @@
   (cond [(null? l) 1]
         [(atom? (car l)) (depth* (cdr l))]
         [else (max (add1 (depth* (car l))) (depth* (cdr l)))]))
+
+(define (leftmost l)
+  (let/cc skip
+    (letrec ([lm (λ (l out)
+                 (cond [(null? l) '()]
+                       [(atom? (car l)) (out (car l))]
+                       [else (begin (lm (car l) out)
+                                    (lm (cdr l) out))]))])
+      (lm l skip))))
+
+(define (leftmost l)
+  (let/cc skip
+    (letrec ([lm (λ (l)
+                   (cond [(null? l) '()]
+                         [(atom? (car l)) (skip (car l))]
+                         [else (begin (lm (car l))
+                                      (lm (cdr l)))]))])
+      (lm l))))
+
+(leftmost '(((a) b) d))
+
+(define (even-or-odd? i)
+  (letrec ([even? (λ (n)
+                    (if (= n 0)
+                        'even
+                        (odd? (sub1 n))))]
+           [odd? (λ (n)
+                   (if (= n 0)
+                       'odd
+                       (even? (sub1 n))))])
+    (even? i)))
+
+(even-or-odd? 100)  ; => 'even
+(even-or-odd? 101)  ; => 'odd
+
+
+(define (rm a l oh)
+  (cond [(null? l) (oh 'no)]
+        [(atom? (car l))
+         (if (eq? (car l) a)
+             (cdr l)
+             (cons (car l)
+                   (rm a (cdr l) oh)))]
+        [else
+         ...
+         (let/cc oh
+           (rm a (car l) oh))
+         ...]))
+
+(define (rm a l oh)
+  (cond [(null? (oh 'no))]
+        [(atom? (car l))
+         (if (eq? (car l) a)
+             (cdr l)
+             (cons (car l)
+                   (rm a (cdr l) oh)))]
+        [else
+         (if (atom? (letcc oh
+                           (rm a (car l) oh)))
+             (cons (car l) (rm a (cdr l) oh))
+             (cons (rm a (car l) 0) (cdr l)))]))
+
+(define (try a b)
+  (let/cc success
+    (let/cc x
+      (success a))
+    b))
+
+(define (rember1* a l)
+  (let/cc oh
+    (try oh (rm a l oh) l)))
+
+(rember1* 'noodles '(((noodles food) more (food))))
+
+#| last example wasn't great |#
