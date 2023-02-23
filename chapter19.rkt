@@ -98,3 +98,51 @@
          (begin
            (walk (car l))
            (walk (cdr l)))]))
+
+(define (start-it l)
+  (let/cc here
+    (set! leave here)
+    (walk l)))
+
+(start-it '((potato) (chips (chips (with))) fish))
+
+
+(define fill '())
+
+(define (waddle l)
+  (cond [(null? l) '()]
+        [(atom? (car l))
+         (let ()
+           (let/cc rest
+             (set! fill rest)
+             (leave (car l)))
+           (waddle (cdr l)))]
+        [else
+         (begin
+           (waddle (car l))
+           (waddle (cdr l)))]))
+
+(define (start-it2 l)
+  (let/cc here
+    (set! leave here)
+    (waddle l)))
+
+(start-it2 '((donuts)
+             (cheerios (cheerios (spaghettios)))
+             donuts))
+
+(fill '((donuts)
+        (cheerios (cheerios (spaghettios)))
+        donuts))
+
+(define (rest1 x)
+  (waddle '(()
+            (cheerios (cheerios (spaghettios)))
+            donuts)))
+
+(define (get-next x)
+  (let/cc here-again
+    (set! leave here-again)
+    (fill 'go)))
+
+(get-next 'go)
