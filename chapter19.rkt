@@ -146,3 +146,111 @@
     (fill 'go)))
 
 (get-next 'go)
+
+;; starting up again on 27feb23
+(define leave '())
+
+(define (walk l)
+  (cond [(null? l) '()]
+        [(atom? (car l)) (leave (car l))]
+        [else
+         (begin (walk (car l))
+                (walk (cdr l)))]))
+
+(define (start-it l)
+  (let/cc here
+    (set! leave here)
+    (walk l)))
+
+(start-it '((potato)
+            (chips (chips (with)))
+            fish))
+
+(define fill '())
+
+(define (waddle l)
+  (cond [(null? l) '()]
+        [(atom? (car l)) (begin
+                           (let/cc rest
+                             (set! fill rest)
+                             (leave (car l)))
+                           (waddle (cdr l)))]
+        [else
+         (begin (waddle (car l))
+                (waddle (cdr l)))]))
+
+(define (start-it2 l)
+  (let/cc here
+    (set! leave here)
+    (waddle l)))
+
+(start-it2 '((donuts)
+             (cheerios (cheerios (spaghettios)))
+             donuts))
+
+(define (get-next x)
+  (let/cc here-again
+    (set! leave here-again)
+    (fill 'go)))
+
+(get-next 'go)
+
+(define (get-first l)
+  (let/cc here
+    (set! leave here)
+    (waddle l)
+    (leave '())))
+
+
+(get-first '())
+(get-first '((pizza)))
+(get-first '(fish (chips) chips))
+(get-next 'go)
+
+(define (two-in-a-row-*? l)
+  (let ([fst (get-first l)])
+    (if (atom? fst)
+        (two-in-a-row-b*? fst)
+        #f)))
+
+(define (two-in-a-row-b*? a)
+  (let ([n (get-next 'go)])
+    (if (atom? n)
+        (or (eq? n a)
+            (two-in-a-row-b*? n))
+        #f)))
+
+(define two-in-a-row-*?
+  (letrec
+      ((T? (λ (a)
+             (let ((n (get-next 0)))
+               (if (atom? n)
+                   (or (eq? n a) (T? n))
+                   #f))))
+       (get-next (λ (x)
+                   (let/cc here-again
+                     (set! leave here-again)
+                     (fill 'go))))
+       (fill identity)
+       (waddle (λ (l)
+                 (cond [(null? l) '()]
+                       [(atom? (car l))
+                        (begin
+                          (let/cc rest
+                            (set! fill rest)
+                            (leave (car l)))
+                          (waddle (cdr l)))]
+                       [else (begin
+                               (waddle (car l))
+                               (waddle (cdr l)))]))))
+    (λ (l)
+      (let ((fst (let/cc here
+                   (set! leave here)
+                   (waddle l)
+                   (leave '()))))
+        (if (atom? fst) (T? fst) #f)))))
+
+
+(two-in-a-row-*? '(((((peanut) butter)) and (marmalade ((((((jelly))))) jelly)))))
+(two-in-a-row-*? '(((((peanut) butter)) and (marmalade ((((((jelly))))) jam)))))
+(two-in-a-row-*? '(((food) ()) (((food)))))
